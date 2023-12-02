@@ -1,6 +1,6 @@
 package com.it.springbootapp.util;
 
-import com.springjpa.app.models.Person;
+import com.it.springbootapp.models.Person;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;

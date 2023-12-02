@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns="http://www.w3.org/1999/html">
+<head>
+    <link rel="icon" href="/favicon.ico" type="image/png">
+    <meta charset="UTF-8">
+    <title>Index</title>
+</head>
+<body>
+<form th:method="POST" th:action="@{/books/search}" th:object="${searchBook}">
+    <label for="search"></label>
+    <input type="text" id="search" th:field="*{title}"/>
+    <div style="color:orange" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">etot text budet zamenen ili skrit</div>
+    <input type="submit" value="Search"/>
+</form>
+
+<th:block th:if="${hideOptions}"><br>
+    <span th:if="${booksFound.isEmpty()}">No books found</span>
+</th:block>
+
+<div th:each="book : ${booksFound}">
+    <a th:href="@{/books/{id}(id=${book.getId()})}">>></a>
+    <span th:style="${book.isOverdue() ? 'color: red;' : ''}" th:utext="${book.getAuthor() + ', ' + book.getTitle() + ', ' + book.getIssueDate()
+    + (book.isOverdue() ? ' | Overdue: ' + 'since ' + book.getTimestamp().toLocalDateTime().format(overdueFormat) : '')
+    + '<br/>'}"></span>
+
+    <th:block th:if="${book.getPersonOfBook() != null}">
+        <span>Person assigned: </span>
+        <a th:href="${'/people/'+book.getPersonOfBook().getId()}"
+       th:utext="${book.getPersonOfBook().getFio()}"></a>
+    </th:block>
+
+    <span th:if="${book.getPersonOfBook() == null}" th:utext="'Book is free'"></span>
+</div>
+<br/>
+
+<th:block th:if="${!hideOptions}">
+
+<form th:method="GET" th:action="@{/books}">
+    <label>
+        <input th:type="checkbox" name="" th:onchange="this.form.submit()" th:checked="${sortingFlag}"/>
+        Sort by issue date
+    </label>
+    <input type="hidden" th:name="page" th:value="${#strings.isEmpty(currentPage) ? '' : currentPage}"/>
+    <input type="hidden" th:name="perpage"
+           th:value="${#strings.isEmpty(currentBooksPerPage) ? '' : currentBooksPerPage}"/>
+    <input type="hidden" th:name="sortbyyear" th:value="${sortingFlag == true ? '0' : '1'}"/>
+</form>
+
+<hr/>
+Pages: <br/>
+
+<th:block th:each="pN, iterStat : ${pageNumbers}" style="text-decoration: none; display: inline-block;">
+    <span th:if="${pN == currentPage}" th:utext="${pN}" style="font-size: 18px;"></span>
+    <a th:if="${pN != currentPage}"
+       th:href="${'/books?page=' + pN + '&perpage=' + currentBooksPerPage + (sortingFlag ? '&sortbyyear=' + 1 : '')}"
+       th:utext="${pN}"
+       style="text-decoration: none;"></a>
+    <br th:if="${iterStat.index > 0 && iterStat.index % 19 == 0}"/>
+</th:block>
+
+</br>
+<form th:method="GET" th:action="@{/books}">
+    <label for="booksperpage1">Books per page</label>
+    <select id="booksperpage1" onchange="window.location.href=this.value">
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 1 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="1"
+                th:selected="${currentBooksPerPage == 1}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 2 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="2"
+                th:selected="${currentBooksPerPage == 2}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 5 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="5"
+                th:selected="${currentBooksPerPage == 5}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 10 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="10"
+                th:selected="${currentBooksPerPage == 10}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 20 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="20"
+                th:selected="${currentBooksPerPage == 20}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 50 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="50"
+                th:selected="${currentBooksPerPage == 50}"></option>
+    </select>
+</form>
+
+<hr/>
+
+<br/>
+
+<div th:each="book : ${books}">
+    <a th:href="@{/books/{id}(id=${book.getId()})}">>></a>
+    <span th:style="${book.isOverdue() ? 'color: red;' : ''}" th:text="${book.getAuthor() + ', ' + book.getTitle() + ', ' + book.getIssueDate()
+    + (book.isOverdue() ? ' | Overdue: ' + 'since ' + book.getTimestamp().toLocalDateTime().format(overdueFormat) : '')
+    }"></span>
+
+</div>
+<br/>
+<hr/>
+
+<form th:method="GET" th:action="@{/books}">
+    <label for="booksperpage2">Books per page</label>
+    <select id="booksperpage2" onchange="window.location.href=this.value">
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 1 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="1"
+                th:selected="${currentBooksPerPage == 1}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 2 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="2"
+                th:selected="${currentBooksPerPage == 2}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 5 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="5"
+                th:selected="${currentBooksPerPage == 5}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 10 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="10"
+                th:selected="${currentBooksPerPage == 10}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 20 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="20"
+                th:selected="${currentBooksPerPage == 20}"></option>
+        <option th:value="${'/books?page=' + currentPage + '&perpage=' + 50 + (sortingFlag ? '&sortbyyear=1' : '')}" th:text="50"
+                th:selected="${currentBooksPerPage == 50}"></option>
+    </select>
+</form>
+</th:block>
+
+<hr/>
+<br/>
+<a href="/books/new">Create new book</a>
+
+
+
+
+</body>
+</html>

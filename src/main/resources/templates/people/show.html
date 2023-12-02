@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <link rel="icon" href="/favicon.ico"/>
+    <meta charset="UTF-8">
+    <title>Show Person</title>
+</head>
+<body>
+<span th:utext="'ID: ' + ${person.getId()} + '<br/>FIO: ' + ${person.getFio()}
++ '<br/>Birthdate: ' + ${person.getBd()}"></span><br/>
+
+<a th:href="@{/people/{id}/edit(id=${person.getId()})}">Edit</a><br/>
+
+<!--<p th:text="${personsBooksEmpty}">asd</p>-->
+<form th:method="DELETE" th:action="@{/people/{id}(id=${person.getId()})}">
+    <input type="submit" value="Delete"/>
+</form>
+<br/>
+<span th:utext="${not personsBooks.isEmpty() ? 'Books bound:<br/>' : 'No books are bound'}"></span><br/>
+<div th:each="book : ${personsBooks}">
+    <a th:href="@{/books/{id}(id=${book.getId()})}"
+       th:utext="'Title: ' + ${book.getTitle()} + '<br/>Author: ' + ${book.getAuthor()} + '<br/>Issue date: ' + ${book.getIssueDate()}">book</a><div style="height: 10px;"></div>
+</div>
+
+</body>
+</html>

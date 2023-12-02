@@ -1,13 +1,13 @@
 package com.it.springbootapp.services;
 
-import com.springjpa.app.models.Person;
-import com.springjpa.app.repositories.PeopleRepository;
+import com.it.springbootapp.models.Person;
+import com.it.springbootapp.repositories.PeopleRepository;
+import jakarta.persistence.EntityManager;
 import org.hibernate.Session;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 

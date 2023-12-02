@@ -1,16 +1,15 @@
 package com.it.springbootapp.controllers;
 
-import com.springjpa.app.services.BooksService;
-import com.springjpa.app.services.PeopleService;
-import com.springjpa.app.util.PersonValidator;
-import com.springjpa.app.models.Person;
+import com.it.springbootapp.models.Person;
+import com.it.springbootapp.services.BooksService;
+import com.it.springbootapp.services.PeopleService;
+import com.it.springbootapp.util.PersonValidator;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/people")

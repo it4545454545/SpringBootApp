@@ -1,17 +1,19 @@
 package com.it.springbootapp.controllers;
 
-import com.springjpa.app.models.Book;
-import com.springjpa.app.models.Person;
-import com.springjpa.app.services.BooksService;
-import com.springjpa.app.services.PeopleService;
-import com.springjpa.app.util.BookValidator;
+import com.it.springbootapp.models.Book;
+import com.it.springbootapp.models.Person;
+import com.it.springbootapp.services.BooksService;
+import com.it.springbootapp.services.PeopleService;
+import com.it.springbootapp.util.BookSearchTextValidator;
+import com.it.springbootapp.util.BookValidator;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import java.util.List;
 
 @Controller
 @RequestMapping("/books")
@@ -19,12 +21,14 @@ public class BooksController {
     private final BooksService booksService;
     private final PeopleService peopleService;
     private final BookValidator bookValidator;
+    private final BookSearchTextValidator bookSearchTextValidator;
 
     @Autowired
-    public BooksController(BooksService bookDAO, BookValidator bookValidator, PeopleService peopleService) {
+    public BooksController(BooksService bookDAO, BookValidator bookValidator, PeopleService peopleService, BookSearchTextValidator bookSearchTextValidator) {
         this.booksService = bookDAO;
         this.bookValidator = bookValidator;
         this.peopleService = peopleService;
+        this.bookSearchTextValidator = bookSearchTextValidator;
     }
 
     @GetMapping("/favicon.ico")
@@ -34,29 +38,62 @@ public class BooksController {
 
     @GetMapping()
     public String index(Model model,
-                        @RequestParam(value = "page", required = false) Integer pageNumber,
+                        @RequestParam(value = "page", required = false) Integer currentPageNumber,
                         @RequestParam(value = "perpage", required = false) Integer booksPerPage,
-                        @RequestParam(value = "sortbyyear", required = false) Integer sortByYear
+                        @RequestParam(value = "sortbyyear", required = false) Integer sortByYear,
+                        @ModelAttribute("searchBook") Book searchBook
     ) {
-        boolean sby_flag = sortByYear != null && sortByYear == 1;
-        if ((pageNumber != null) && (booksPerPage != null)) {
-            if (sby_flag) {
-                model.addAttribute("books", booksService.findAll(pageNumber, booksPerPage, true));
-            } else {
-                model.addAttribute("books", booksService.findAll(pageNumber, booksPerPage));
-            }
+        int countOfBooks = booksService.countAllBooks();
+        List<Integer> pageNumbers;
+        int maxPageCount;
+        if (booksPerPage != null) {
+            maxPageCount = booksService.getPageNumbers(booksPerPage, countOfBooks).size();
         } else {
-            if(booksPerPage == null) booksPerPage = 50;
-            if(pageNumber == null) pageNumber = 1;
-            if (sby_flag) {
-                model.addAttribute("books", booksService.findAll(true));
-            } else model.addAttribute("books", booksService.findAll());
+            maxPageCount = countOfBooks;
         }
 
-        model.addAttribute("pageNumbers", booksService.getPageNumbers(booksPerPage));
-        model.addAttribute("currentPage", pageNumber);
+        if (currentPageNumber != null) {
+            if (currentPageNumber > maxPageCount) {
+                if (booksPerPage != null) {
+                    model.addAttribute("searchText", "");
+                    return "redirect:/books?page=1&perpage=" + booksPerPage;
+                }
+                model.addAttribute("searchText", "");
+                return "redirect:/books?page=1";
+            }
+        }
+
+        boolean sby_flag = sortByYear != null && sortByYear == 1;
+
+        if ((currentPageNumber != null) && (booksPerPage != null)) {
+            if (sby_flag) {
+                model.addAttribute("books", booksService.findAll(currentPageNumber, booksPerPage, true));
+                model.addAttribute("sortingFlag", true);
+            } else {
+                model.addAttribute("books", booksService.findAll(currentPageNumber, booksPerPage));
+                model.addAttribute("sortingFlag", false);
+            }
+            pageNumbers = booksService.getPageNumbers(booksPerPage, countOfBooks);
+        } else {
+            if (booksPerPage == null) booksPerPage = 50;
+            if (currentPageNumber == null) currentPageNumber = 1;
+            if (sby_flag) {
+                model.addAttribute("books", booksService.findAll(true));
+                model.addAttribute("sortingFlag", true);
+            } else {
+                model.addAttribute("books", booksService.findAll());
+                model.addAttribute("sortingFlag", false);
+            }
+            pageNumbers = booksService.getPageNumbers(booksPerPage, countOfBooks);
+        }
+
+        model.addAttribute("pageNumbers", pageNumbers);
+        model.addAttribute("currentPage", currentPageNumber);
         model.addAttribute("currentBooksPerPage", booksPerPage);
 
+        model.addAttribute("searchText", "");
+        model.addAttribute("hideOptions", false);
+        model.addAttribute("overdueFormat", booksService.overdueFormat());
         return "books/index";
     }
 
@@ -110,6 +147,7 @@ public class BooksController {
     @PatchMapping("/{id}/release")
     public String releaseBook(@PathVariable("id") int bookId) {
         booksService.setPersonToBook(bookId, null);
+        booksService.releaseTimestamp(bookId);
         return "redirect:/books/{id}";
     }
 
@@ -118,7 +156,21 @@ public class BooksController {
         //Optimisation via proxyObject
         Person personToAssign = peopleService.getPersonProxy(person.getId());
         booksService.setPersonToBook(bookId, personToAssign);
+        booksService.setTimestamp(bookId);
         return "redirect:/books/{id}";
+    }
+
+    @PostMapping("/search")
+    public String searchBook(@ModelAttribute("searchBook") Book searchBook,
+                             BindingResult bindingResult, Model model) {
+        bookSearchTextValidator.validate(searchBook, bindingResult);
+        if (bindingResult.hasErrors()) {
+            return "books/index";
+        }
+        model.addAttribute("booksFound", booksService.findByTitleIsLikeIgnoreCase(searchBook.getTitle()));
+        model.addAttribute("hideOptions", true);
+        model.addAttribute("overdueFormat", booksService.overdueFormat());
+        return "books/index";
     }
 }
 

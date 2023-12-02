@@ -1,7 +1,7 @@
 package com.it.springbootapp.backupfiles;//package com.springjpa.app.dao;
 //
-//import com.springjpa.app.models.Book;
-//import com.springjpa.app.models.Person;
+//import com.it.springbootapp.models.Book;
+//import com.it.springbootapp.models.Person;
 //import org.hibernate.Session;
 //import org.hibernate.SessionFactory;
 //import org.springframework.stereotype.Component;
